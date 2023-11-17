@@ -1,25 +1,46 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import PostalCodeForm from './PostalCodeForm';
+import LocationInfo from './LocationInfo';
 import './App.css';
 
-function App() {
+const App = () => {
+  const [locationData, setLocationData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchData = async (postalCode) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`https://api.zippopotam.us/in/${postalCode}`);
+      setLocationData({
+        country: response.data.country,
+        state: response.data.state,
+        placeName: response.data.places[0]['place name'],
+      });
+    } catch (error) {
+      setError('Error fetching location information');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearInfo = () => {
+    setLocationData(null);
+    setError(null);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Postal Code Information App</h1>
+      <PostalCodeForm onSubmit={fetchData} onClear={clearInfo} />
+      {loading && <p>Loading...</p>}
+      {error && <p>{error}</p>}
+      <LocationInfo locationData={locationData} clearInfo={clearInfo} />
     </div>
   );
-}
+};
 
 export default App;
+
+
